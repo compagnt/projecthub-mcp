@@ -27,7 +27,8 @@ async function request<T = unknown>(
     body?: Record<string, unknown>;
   },
 ): Promise<T> {
-  const url = new URL(`${BASE_URL}${path}`);
+  const normalizedPath = path.replace(/\/+$/, "");
+  const url = new URL(`${BASE_URL}${normalizedPath}`);
   if (options?.params) {
     for (const [key, value] of Object.entries(options.params)) {
       if (value !== undefined && value !== null) {
