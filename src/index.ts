@@ -11,6 +11,9 @@ import { registerTimerTools } from "./tools/timers.js";
 import { registerNoteTools } from "./tools/notes.js";
 import { registerDiscussionTools } from "./tools/discussions.js";
 import { registerReminderTools } from "./tools/reminders.js";
+import { registerNotificationTools } from "./tools/notifications.js";
+import { registerLinkTools } from "./tools/links.js";
+import { registerFileTools } from "./tools/files.js";
 
 const server = new McpServer({
   name: "projecthub",
@@ -25,6 +28,9 @@ registerTimerTools(server);
 registerNoteTools(server);
 registerDiscussionTools(server);
 registerReminderTools(server);
+registerNotificationTools(server);
+registerLinkTools(server);
+registerFileTools(server);
 
 const transport = new StdioServerTransport();
 await server.connect(transport);

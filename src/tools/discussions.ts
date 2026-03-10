@@ -19,9 +19,27 @@ export function registerDiscussionTools(server: McpServer): void {
     }
   });
 
+  server.registerTool("create_discussion", {
+    description: "Create a new discussion (chat room) in a project",
+    inputSchema: {
+      project_uuid: z.string().uuid().describe("UUID of the project"),
+      title: z.string().describe("Title of the discussion"),
+    },
+  }, async ({ project_uuid, title }) => {
+    try {
+      const discussion = await api.post(
+        `/projects/${project_uuid}/discussions`,
+        { title },
+      );
+      return toolResult(discussion);
+    } catch (error) {
+      return toolError(error);
+    }
+  });
+
   server.registerTool("get_discussion_messages", {
     description:
-      "Get messages from a discussion in chronological order. Discussions are read-only via the API.",
+      "Get messages from a discussion in chronological order. Messages are read-only via the API.",
     inputSchema: {
       project_uuid: z.string().uuid().describe("UUID of the project"),
       discussion_uuid: z
