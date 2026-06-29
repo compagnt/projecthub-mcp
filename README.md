@@ -4,18 +4,23 @@ An MCP (Model Context Protocol) server that connects AI assistants like Claude D
 
 ## Features
 
-25 tools covering the full ProjectHub API:
+43 tools covering the full ProjectHub API:
 
 | Category | Tools |
 |----------|-------|
 | **User** | `get_user_info` |
-| **Workspaces** | `list_workspaces`, `list_projects` |
+| **Workspaces** | `list_workspaces`, `list_projects`, `create_project` |
 | **Projects** | `get_project`, `list_project_members`, `search_project`, `get_activity` |
 | **Tasks** | `list_tasks`, `get_task`, `create_task`, `update_task`, `delete_task`, `toggle_task` |
 | **Time Tracking** | `start_timer`, `stop_timer` |
 | **Notes** | `list_notes`, `get_note`, `create_note`, `update_note`, `delete_note` |
-| **Discussions** | `list_discussions`, `get_discussion_messages` |
+| **Canvas** | `list_canvas_items`, `place_on_canvas`, `move_canvas_item`, `remove_from_canvas` |
+| **Discussions** | `list_discussions`, `create_discussion`, `get_discussion_messages` |
 | **Reminders** | `list_reminders`, `create_reminder`, `dismiss_reminder` |
+| **Notifications** | `list_notifications`, `mark_notification_read` |
+| **Links** | `list_links`, `create_link`, `delete_link` |
+| **Files** | `list_files` |
+| **Memories** | `list_memories`, `get_memory`, `create_memory`, `update_memory`, `delete_memory`, `list_workspace_memories` |
 
 ## Prerequisites
 
