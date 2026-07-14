@@ -5,7 +5,7 @@ import { api, toolResult, toolError } from "../api-client.js";
 export function registerTaskTools(server: McpServer): void {
   server.registerTool("list_tasks", {
     description:
-      "List tasks in a project with optional filters for status, assignee, and parent task",
+      "List tasks in a project with optional filters. Results are paginated (default 50). Use `q` to keyword-search titles/descriptions, and `limit`/`offset` to page through large projects instead of fetching everything.",
     inputSchema: {
       project_uuid: z.string().uuid().describe("UUID of the project"),
       status: z
@@ -24,13 +24,32 @@ export function registerTaskTools(server: McpServer): void {
         .describe(
           '"none" for top-level only (default), "all" for all tasks, or a task UUID for subtasks',
         ),
+      q: z
+        .string()
+        .optional()
+        .describe(
+          "Keyword filter over title/description. Multi-term: every word must match (order-independent).",
+        ),
+      limit: z
+        .number()
+        .int()
+        .optional()
+        .describe("Max results per page (default 50, max 200)"),
+      offset: z
+        .number()
+        .int()
+        .optional()
+        .describe("Number of results to skip, for paging (default 0)"),
     },
-  }, async ({ project_uuid, status, assignee, parent }) => {
+  }, async ({ project_uuid, status, assignee, parent, q, limit, offset }) => {
     try {
       const tasks = await api.get(`/projects/${project_uuid}/tasks`, {
         status,
         assignee,
         parent,
+        q,
+        limit,
+        offset,
       });
       return toolResult(tasks);
     } catch (error) {

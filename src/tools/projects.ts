@@ -33,7 +33,7 @@ export function registerProjectTools(server: McpServer): void {
 
   server.registerTool("search_project", {
     description:
-      "Search across notes, discussions, and messages in a project. Returns up to 4 results per type (note, discussion, message).",
+      "Search across notes, tasks, discussions, messages, and memories in a project. Strong multi-term keyword matching (every word must match; order-independent); semantic search is also used for embedded types on Pro plans. Returns up to 4 results per type. Pass `type` to restrict to one entity type (e.g. 'task').",
     inputSchema: {
       project_uuid: z.string().uuid().describe("UUID of the project"),
       q: z
@@ -41,10 +41,14 @@ export function registerProjectTools(server: McpServer): void {
         .min(3)
         .max(500)
         .describe("Search query (minimum 3 characters)"),
+      type: z
+        .enum(["note", "task", "discussion", "message", "memory"])
+        .optional()
+        .describe("Restrict results to a single entity type"),
     },
-  }, async ({ project_uuid, q }) => {
+  }, async ({ project_uuid, q, type }) => {
     try {
-      const results = await api.get(`/projects/${project_uuid}/search`, { q });
+      const results = await api.get(`/projects/${project_uuid}/search`, { q, type });
       return toolResult(results);
     } catch (error) {
       return toolError(error);
