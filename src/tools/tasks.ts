@@ -40,8 +40,12 @@ export function registerTaskTools(server: McpServer): void {
         .int()
         .optional()
         .describe("Number of results to skip, for paging (default 0)"),
+      tag: z
+        .string()
+        .optional()
+        .describe("Only tasks carrying this tag name (case-insensitive)"),
     },
-  }, async ({ project_uuid, status, assignee, parent, q, limit, offset }) => {
+  }, async ({ project_uuid, status, assignee, parent, q, limit, offset, tag }) => {
     try {
       const tasks = await api.get(`/projects/${project_uuid}/tasks`, {
         status,
@@ -50,6 +54,7 @@ export function registerTaskTools(server: McpServer): void {
         q,
         limit,
         offset,
+        tag,
       });
       return toolResult(tasks);
     } catch (error) {
@@ -99,6 +104,10 @@ export function registerTaskTools(server: McpServer): void {
         .string()
         .optional()
         .describe("Due date in YYYY-MM-DD format"),
+      tags: z
+        .array(z.string())
+        .optional()
+        .describe('Tag names, e.g. ["July Release"]. Unknown names are auto-created in the project. Call list_tags first to reuse existing tags.'),
       assignee_id: z
         .number()
         .int()
@@ -159,6 +168,10 @@ export function registerTaskTools(server: McpServer): void {
         .int()
         .optional()
         .describe("User ID to assign, or 0 to unassign"),
+      tags: z
+        .array(z.string())
+        .optional()
+        .describe('Tag names, e.g. ["July Release"]. REPLACES existing tags (pass [] to clear). Unknown names are auto-created. Call list_tags first to reuse existing tags.'),
     },
   }, async ({ project_uuid, task_uuid, ...body }) => {
     try {

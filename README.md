@@ -4,7 +4,7 @@ An MCP (Model Context Protocol) server that connects AI assistants like Claude D
 
 ## Features
 
-43 tools covering the full ProjectHub API:
+47 tools covering the full ProjectHub API:
 
 | Category | Tools |
 |----------|-------|
@@ -14,6 +14,7 @@ An MCP (Model Context Protocol) server that connects AI assistants like Claude D
 | **Tasks** | `list_tasks`, `get_task`, `create_task`, `update_task`, `delete_task`, `toggle_task` |
 | **Time Tracking** | `start_timer`, `stop_timer` |
 | **Notes** | `list_notes`, `get_note`, `create_note`, `update_note`, `delete_note` |
+| **Tags** | `list_tags`, `create_tag`, `update_tag`, `delete_tag` |
 | **Canvas** | `list_canvas_items`, `place_on_canvas`, `move_canvas_item`, `remove_from_canvas` |
 | **Discussions** | `list_discussions`, `create_discussion`, `get_discussion_messages` |
 | **Reminders** | `list_reminders`, `create_reminder`, `dismiss_reminder` |

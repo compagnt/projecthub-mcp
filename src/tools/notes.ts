@@ -5,13 +5,14 @@ import { api, toolResult, toolError } from "../api-client.js";
 export function registerNoteTools(server: McpServer): void {
   server.registerTool("list_notes", {
     description:
-      "List all notes in a project, ordered by pinned first then newest",
+      "List all notes in a project, ordered by pinned first then newest. Pass `tag` to only return notes carrying that tag.",
     inputSchema: {
       project_uuid: z.string().uuid().describe("UUID of the project"),
+      tag: z.string().optional().describe("Only notes carrying this tag name (case-insensitive)"),
     },
-  }, async ({ project_uuid }) => {
+  }, async ({ project_uuid, tag }) => {
     try {
-      const notes = await api.get(`/projects/${project_uuid}/notes`);
+      const notes = await api.get(`/projects/${project_uuid}/notes`, { tag });
       return toolResult(notes);
     } catch (error) {
       return toolError(error);
@@ -48,6 +49,13 @@ export function registerNoteTools(server: McpServer): void {
         .enum(["yellow", "blue", "green", "pink", "purple"])
         .optional()
         .describe("Note color (default: yellow)"),
+      tags: z
+        .array(z.string())
+        .optional()
+        .describe(
+          'Tag names, e.g. ["July Release"]. REPLACES existing tags. Unknown names are auto-created in the project. Call list_tags first to reuse existing tags.',
+        ),
+
     },
   }, async ({ project_uuid, ...body }) => {
     try {
@@ -78,6 +86,12 @@ export function registerNoteTools(server: McpServer): void {
         .enum(["yellow", "blue", "green", "pink", "purple"])
         .optional()
         .describe("Updated color"),
+      tags: z
+        .array(z.string())
+        .optional()
+        .describe(
+          'Tag names, e.g. ["July Release"]. REPLACES existing tags (pass [] to clear). Unknown names are auto-created. Call list_tags first to reuse existing tags.',
+        ),
     },
   }, async ({ project_uuid, note_uuid, ...body }) => {
     try {

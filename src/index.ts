@@ -16,6 +16,7 @@ import { registerLinkTools } from "./tools/links.js";
 import { registerFileTools } from "./tools/files.js";
 import { registerMemoryTools } from "./tools/memories.js";
 import { registerCanvasTools } from "./tools/canvas.js";
+import { registerTagTools } from "./tools/tags.js";
 
 const server = new McpServer({
   name: "projecthub",
@@ -35,6 +36,7 @@ registerLinkTools(server);
 registerFileTools(server);
 registerMemoryTools(server);
 registerCanvasTools(server);
+registerTagTools(server);
 
 const transport = new StdioServerTransport();
 await server.connect(transport);
