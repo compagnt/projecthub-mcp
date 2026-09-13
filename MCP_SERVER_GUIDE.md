@@ -653,3 +653,20 @@ What each project role can do via the API:
 - **The token inherits the user's full permissions** — no separate scopes
 - **Rate limiting**: None currently. Be respectful with polling frequency
 - **Pagination**: Tasks, notes, discussions return full lists. Messages support cursor-based pagination via `before` param
+
+---
+
+## Files & Task Attachments
+
+Tasks can reference project files (Pro plan, `files_enabled`). Task objects carry `attachments: [{unique_id, name, content_type, file_size}]`; file objects carry `task_uuids`.
+
+| Tool Name | API Call | Description |
+|-----------|----------|-------------|
+| `list_files` | `GET /projects/{uuid}/files` | List files (`folder`, `task_uuid` filters) |
+| `get_file` | `GET /projects/{uuid}/files/{uuid}` | File metadata incl. attached tasks |
+| `upload_file` | `POST /projects/{uuid}/files` (multipart) | Upload `content` (text) or `content_base64`; optional `folder`, `name`, `task_uuid` (attach on upload) |
+| `delete_file` | `DELETE /projects/{uuid}/files/{uuid}` | Delete a file (uploader or Project Owner) |
+| `attach_file_to_task` | `POST /projects/{uuid}/tasks/{uuid}/attachments` | Reference an existing file from a task (idempotent) |
+| `detach_file_from_task` | `DELETE /projects/{uuid}/tasks/{uuid}/attachments/{uuid}` | Remove the reference; file survives |
+
+`create_task` / `update_task` also accept `attachment_uuids` (replace semantics on update). Keep uploads to a few MB — the content travels inside the tool call. The API rejects files over 50 MB with `413`.

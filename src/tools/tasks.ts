@@ -118,6 +118,12 @@ export function registerTaskTools(server: McpServer): void {
         .uuid()
         .optional()
         .describe("UUID of parent task for creating subtasks"),
+      attachment_uuids: z
+        .array(z.string().uuid())
+        .optional()
+        .describe(
+          "UUIDs of existing project files to reference from this task (see list_files / upload_file).",
+        ),
     },
   }, async ({ project_uuid, ...body }) => {
     try {
@@ -172,6 +178,12 @@ export function registerTaskTools(server: McpServer): void {
         .array(z.string())
         .optional()
         .describe('Tag names, e.g. ["July Release"]. REPLACES existing tags (pass [] to clear). Unknown names are auto-created. Call list_tags first to reuse existing tags.'),
+      attachment_uuids: z
+        .array(z.string().uuid())
+        .optional()
+        .describe(
+          "Full replacement list of file UUIDs referenced from this task (omit to leave attachments untouched; [] clears them). For incremental changes use attach_file_to_task / detach_file_from_task.",
+        ),
     },
   }, async ({ project_uuid, task_uuid, ...body }) => {
     try {
@@ -184,6 +196,45 @@ export function registerTaskTools(server: McpServer): void {
       const task = await api.patch(
         `/projects/${project_uuid}/tasks/${task_uuid}`,
         filteredBody,
+      );
+      return toolResult(task);
+    } catch (error) {
+      return toolError(error);
+    }
+  });
+
+  server.registerTool("attach_file_to_task", {
+    description:
+      "Reference an existing project file from a task (idempotent). Returns the updated task with its `attachments`. Upload new content with upload_file first, or pass task_uuid to upload_file to do both in one step.",
+    inputSchema: {
+      project_uuid: z.string().uuid().describe("UUID of the project"),
+      task_uuid: z.string().uuid().describe("UUID of the task"),
+      file_uuid: z.string().uuid().describe("UUID of the file (from list_files / upload_file)"),
+    },
+  }, async ({ project_uuid, task_uuid, file_uuid }) => {
+    try {
+      const task = await api.post(
+        `/projects/${project_uuid}/tasks/${task_uuid}/attachments`,
+        { file_uuid },
+      );
+      return toolResult(task);
+    } catch (error) {
+      return toolError(error);
+    }
+  });
+
+  server.registerTool("detach_file_from_task", {
+    description:
+      "Remove a file reference from a task. The file itself stays in the project's files. Returns the updated task.",
+    inputSchema: {
+      project_uuid: z.string().uuid().describe("UUID of the project"),
+      task_uuid: z.string().uuid().describe("UUID of the task"),
+      file_uuid: z.string().uuid().describe("UUID of the attached file"),
+    },
+  }, async ({ project_uuid, task_uuid, file_uuid }) => {
+    try {
+      const task = await api.delete(
+        `/projects/${project_uuid}/tasks/${task_uuid}/attachments/${file_uuid}`,
       );
       return toolResult(task);
     } catch (error) {

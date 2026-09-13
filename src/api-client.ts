@@ -91,6 +91,30 @@ async function request<T = unknown>(
   return data as T;
 }
 
+/**
+ * Multipart POST (file uploads). Content-Type is left to fetch so the boundary
+ * is set correctly; everything else matches `request`.
+ */
+async function requestForm<T = unknown>(path: string, form: FormData): Promise<T> {
+  const normalizedPath = path.replace(/\/+$/, "");
+  const response = await fetch(`${BASE_URL}${normalizedPath}`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${currentToken()}`,
+      Accept: "application/json",
+    },
+    body: form,
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    const detail =
+      (data as { detail?: string }).detail || `HTTP ${response.status}`;
+    throw new ProjectHubError(response.status, detail);
+  }
+  return data as T;
+}
+
 export const api = {
   get: <T = unknown>(
     path: string,
@@ -104,6 +128,8 @@ export const api = {
     request<T>("PATCH", path, { body }),
 
   delete: <T = unknown>(path: string) => request<T>("DELETE", path),
+
+  postForm: <T = unknown>(path: string, form: FormData) => requestForm<T>(path, form),
 };
 
 function prune(value: unknown): unknown {

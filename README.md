@@ -4,14 +4,14 @@ An MCP (Model Context Protocol) server that connects AI assistants like Claude D
 
 ## Features
 
-47 tools covering the full ProjectHub API:
+53 tools covering the full ProjectHub API:
 
 | Category | Tools |
 |----------|-------|
 | **User** | `get_user_info` |
 | **Workspaces** | `list_workspaces`, `list_projects`, `create_project` |
 | **Projects** | `get_project`, `list_project_members`, `search_project`, `get_activity` |
-| **Tasks** | `list_tasks`, `get_task`, `create_task`, `update_task`, `delete_task`, `toggle_task` |
+| **Tasks** | `list_tasks`, `get_task`, `create_task`, `update_task`, `delete_task`, `toggle_task` (create/update accept `attachment_uuids`) |
 | **Time Tracking** | `start_timer`, `stop_timer` |
 | **Notes** | `list_notes`, `get_note`, `create_note`, `update_note`, `delete_note` |
 | **Tags** | `list_tags`, `create_tag`, `update_tag`, `delete_tag` |
@@ -20,7 +20,7 @@ An MCP (Model Context Protocol) server that connects AI assistants like Claude D
 | **Reminders** | `list_reminders`, `create_reminder`, `dismiss_reminder` |
 | **Notifications** | `list_notifications`, `mark_notification_read` |
 | **Links** | `list_links`, `create_link`, `delete_link` |
-| **Files** | `list_files` |
+| **Files** | `list_files`, `get_file`, `upload_file`, `delete_file`, `attach_file_to_task`, `detach_file_from_task` |
 | **Memories** | `list_memories`, `get_memory`, `create_memory`, `update_memory`, `delete_memory`, `list_workspace_memories` |
 
 ## Prerequisites
@@ -118,8 +118,10 @@ The ProjectHub deployment must be on a build that includes the OAuth provider
 
 | Variable | Example | Purpose |
 |----------|---------|---------|
-| `APP_BASE_URL` | `https://projecthub.example.com` | Advertised as the OAuth authorization server |
+| `APP_BASE_URL` | `https://projecthub.example.com` | Advertised as the OAuth issuer; every OAuth endpoint URL in the metadata is anchored to it (must be `https://`) |
 | `MCP_PUBLIC_URL` | `https://projecthub-mcp.up.railway.app/mcp` | RFC 9728 resource identifier |
+
+ProjectHub must also run with `DEBUG` off in production. Without `APP_BASE_URL`, the metadata URLs are derived from the request scheme, and a misread proxy header makes them `http://`, which Claude refuses at the registration step.
 
 ### Environment (this service)
 
