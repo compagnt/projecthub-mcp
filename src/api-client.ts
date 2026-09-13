@@ -1,12 +1,36 @@
+import { AsyncLocalStorage } from "node:async_hooks";
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 
-const PROJECTHUB_URL = process.env.PROJECTHUB_URL || "http://localhost:8000";
-const API_TOKEN = process.env.PROJECTHUB_API_TOKEN;
-const BASE_URL = `${PROJECTHUB_URL.replace(/\/+$/, "")}/api/v1`;
+export const PROJECTHUB_URL = (
+  process.env.PROJECTHUB_URL || "http://localhost:8000"
+).replace(/\/+$/, "");
+const BASE_URL = `${PROJECTHUB_URL}/api/v1`;
 
-if (!API_TOKEN) {
-  console.error("PROJECTHUB_API_TOKEN environment variable is required");
-  process.exit(1);
+/**
+ * Which ProjectHub credential a request runs as.
+ *
+ * - stdio mode: one token for the whole process, from PROJECTHUB_API_TOKEN.
+ * - HTTP mode: the bearer token Claude presented on the incoming MCP request
+ *   (an OAuth access token minted by ProjectHub, or a `ph_` personal token),
+ *   forwarded unchanged. `runWithToken` binds it for the duration of that
+ *   request; every tool call inside reads it back here without the 47 tool
+ *   files knowing anything about transports.
+ */
+const tokenContext = new AsyncLocalStorage<string>();
+
+export function runWithToken<T>(token: string, fn: () => T): T {
+  return tokenContext.run(token, fn);
+}
+
+function currentToken(): string {
+  const token = tokenContext.getStore() ?? process.env.PROJECTHUB_API_TOKEN;
+  if (!token) {
+    throw new ProjectHubError(
+      401,
+      "No ProjectHub credential available for this request",
+    );
+  }
+  return token;
 }
 
 export class ProjectHubError extends Error {
@@ -38,7 +62,7 @@ async function request<T = unknown>(
   }
 
   const headers: Record<string, string> = {
-    Authorization: `Bearer ${API_TOKEN}`,
+    Authorization: `Bearer ${currentToken()}`,
     Accept: "application/json",
   };
 

@@ -93,6 +93,78 @@ Add to your Claude Code settings or project config:
 }
 ```
 
+## Hosted mode — Claude Desktop / claude.ai custom connector
+
+The stdio setup above runs one local process per machine with a pasted token.
+For a **custom connector** (Claude Desktop → Settings → Connectors → Add custom
+connector, also usable from claude.ai web and mobile) the server must be hosted
+over HTTPS and use OAuth. That is what `dist/http.js` is:
+
+- **Transport:** Streamable HTTP at `/mcp`, stateless (scales horizontally).
+- **Auth:** ProjectHub itself is the OAuth 2.1 authorization server (PKCE,
+  dynamic client registration, consent page). This service is only a resource
+  server: it 401s with a `WWW-Authenticate` challenge pointing at its
+  `/.well-known/oauth-protected-resource` document, which names ProjectHub as
+  the authorization server. Claude follows that, the user approves on
+  ProjectHub's consent page, and every subsequent tool call forwards that
+  user's access token to `/api/v1`. Personal tokens (`ph_…`) are accepted too.
+- **Verification:** each presented token is checked against `GET /api/v1/me`
+  and cached for `MCP_VERIFY_TTL_SECONDS` (default 60).
+
+### ProjectHub prerequisites
+
+The ProjectHub deployment must be on a build that includes the OAuth provider
+(`oauth2_provider` in `INSTALLED_APPS`, `/oauth/*` routes) with these set:
+
+| Variable | Example | Purpose |
+|----------|---------|---------|
+| `APP_BASE_URL` | `https://projecthub.example.com` | Advertised as the OAuth authorization server |
+| `MCP_PUBLIC_URL` | `https://projecthub-mcp.up.railway.app/mcp` | RFC 9728 resource identifier |
+
+### Environment (this service)
+
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `PROJECTHUB_URL` | Yes | `http://localhost:8000` | Public ProjectHub base URL (also the OAuth issuer) |
+| `MCP_PUBLIC_URL` | Recommended | derived from request | This service's public `/mcp` URL |
+| `PORT` | No | `3000` | Listen port (Railway sets it) |
+| `MCP_ALLOWED_HOSTS` | No | unset | Comma-separated Host allowlist (DNS-rebinding protection); unset = off |
+| `MCP_VERIFY_TTL_SECONDS` | No | `60` | How long a verified token is trusted before re-checking |
+
+`PROJECTHUB_API_TOKEN` is **not** used in hosted mode.
+
+### Deploy on Railway
+
+Add a new service in the ProjectHub Railway project from this repo. The
+`Dockerfile` builds and runs `node dist/http.js`. Generate a public domain for
+the service, then set `MCP_PUBLIC_URL=https://<that domain>/mcp` here and
+`MCP_PUBLIC_URL` / `APP_BASE_URL` on the ProjectHub web service.
+Health check: `GET /healthz`.
+
+### Connect from Claude
+
+Claude Desktop → Settings → Connectors → **Add custom connector** → URL
+`https://<mcp domain>/mcp`. Leave client ID / secret blank (Claude registers
+itself). Sign in to ProjectHub when prompted and click **Allow**.
+
+### Run hosted mode locally
+
+```bash
+npm run build
+PROJECTHUB_URL=http://localhost:8000 npm run start:http
+# Inspector: URL http://localhost:3000/mcp, header Authorization: Bearer ph_...
+```
+
+Note that ProjectHub only allows `https` redirect URIs, so the full OAuth
+browser flow needs a public HTTPS deployment; locally, test with a personal
+token as above.
+
+### Tests
+
+```bash
+npm test   # builds, then runs an end-to-end test against a mock ProjectHub
+```
+
 ## Development
 
 ```bash
@@ -107,8 +179,11 @@ npm run inspect
 
 ```
 src/
-  index.ts           Entry point — creates server and connects stdio transport
-  api-client.ts      HTTP client with auth, error handling, and response helpers
+  index.ts           stdio entrypoint (local Claude Desktop config, one token per process)
+  http.ts            Hosted entrypoint — Streamable HTTP + OAuth resource-server gate
+  server.ts          createServer(): builds the McpServer with every tool registered
+  api-client.ts      HTTP client (per-request token context), error handling, response helpers
+  test/              node:test end-to-end tests for the hosted entrypoint
   tools/
     user.ts          get_user_info
     workspaces.ts    list_workspaces, list_projects

@@ -6,8 +6,8 @@ This document provides everything needed to build an MCP (Model Context Protocol
 
 ProjectHub is a collaborative project management tool. The MCP server will allow AI assistants (Claude Desktop, etc.) to interact with ProjectHub projects — managing tasks, reading notes and discussions, creating reminders, and searching content.
 
-**Transport:** stdio (for Claude Desktop integration)
-**Auth:** Bearer token via ProjectHub's Personal Access Token system
+**Transport:** stdio (local Claude Desktop config) or Streamable HTTP (hosted; Claude Desktop / claude.ai custom connector)
+**Auth:** Bearer token — a ProjectHub Personal Access Token, or an OAuth 2.1 access token minted by ProjectHub's `/oauth/` endpoints for the custom-connector flow (see README, "Hosted mode")
 
 ---
 

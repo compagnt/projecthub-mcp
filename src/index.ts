@@ -1,42 +1,18 @@
 #!/usr/bin/env node
 
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+// stdio entrypoint: one process per Claude client, authenticated with a single
+// personal access token from the environment. For the hosted / Claude Desktop
+// custom-connector deployment, see http.ts.
+
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 
-import { registerUserTools } from "./tools/user.js";
-import { registerWorkspaceTools } from "./tools/workspaces.js";
-import { registerProjectTools } from "./tools/projects.js";
-import { registerTaskTools } from "./tools/tasks.js";
-import { registerTimerTools } from "./tools/timers.js";
-import { registerNoteTools } from "./tools/notes.js";
-import { registerDiscussionTools } from "./tools/discussions.js";
-import { registerReminderTools } from "./tools/reminders.js";
-import { registerNotificationTools } from "./tools/notifications.js";
-import { registerLinkTools } from "./tools/links.js";
-import { registerFileTools } from "./tools/files.js";
-import { registerMemoryTools } from "./tools/memories.js";
-import { registerCanvasTools } from "./tools/canvas.js";
-import { registerTagTools } from "./tools/tags.js";
+import { createServer } from "./server.js";
 
-const server = new McpServer({
-  name: "projecthub",
-  version: "1.0.0",
-});
+if (!process.env.PROJECTHUB_API_TOKEN) {
+  console.error("PROJECTHUB_API_TOKEN environment variable is required");
+  process.exit(1);
+}
 
-registerUserTools(server);
-registerWorkspaceTools(server);
-registerProjectTools(server);
-registerTaskTools(server);
-registerTimerTools(server);
-registerNoteTools(server);
-registerDiscussionTools(server);
-registerReminderTools(server);
-registerNotificationTools(server);
-registerLinkTools(server);
-registerFileTools(server);
-registerMemoryTools(server);
-registerCanvasTools(server);
-registerTagTools(server);
-
+const server = createServer();
 const transport = new StdioServerTransport();
 await server.connect(transport);
