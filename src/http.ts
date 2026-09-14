@@ -30,8 +30,10 @@ import { InvalidTokenError, ServerError } from "@modelcontextprotocol/sdk/server
 import type { OAuthTokenVerifier } from "@modelcontextprotocol/sdk/server/auth/provider.js";
 import type { AuthInfo } from "@modelcontextprotocol/sdk/server/auth/types.js";
 
-import { api, PROJECTHUB_URL, ProjectHubError, runWithToken } from "./api-client.js";
+import { api, PROJECTHUB_URL, ProjectHubError, runWithToken, setTransportMode } from "./api-client.js";
 import { createServer } from "./server.js";
+
+setTransportMode("http"); // this process has no access to the user's disk
 
 const PORT = Number(process.env.PORT || 3000);
 const MCP_PATH = "/mcp";

@@ -18,6 +18,21 @@ const BASE_URL = `${PROJECTHUB_URL}/api/v1`;
  */
 const tokenContext = new AsyncLocalStorage<string>();
 
+/**
+ * Which entrypoint is running. Some tool inputs only make sense when the
+ * server shares a machine with the user (e.g. `upload_file`'s `path`), so the
+ * HTTP entrypoint declares itself hosted at startup.
+ */
+let transportMode: "stdio" | "http" = "stdio";
+
+export function setTransportMode(mode: "stdio" | "http"): void {
+  transportMode = mode;
+}
+
+export function isHosted(): boolean {
+  return transportMode === "http";
+}
+
 export function runWithToken<T>(token: string, fn: () => T): T {
   return tokenContext.run(token, fn);
 }

@@ -4,7 +4,7 @@ An MCP (Model Context Protocol) server that connects AI assistants like Claude D
 
 ## Features
 
-53 tools covering the full ProjectHub API:
+52 tools covering the full ProjectHub API:
 
 | Category | Tools |
 |----------|-------|
@@ -22,6 +22,21 @@ An MCP (Model Context Protocol) server that connects AI assistants like Claude D
 | **Links** | `list_links`, `create_link`, `delete_link` |
 | **Files** | `list_files`, `get_file`, `upload_file`, `delete_file`, `attach_file_to_task`, `detach_file_from_task` |
 | **Memories** | `list_memories`, `get_memory`, `create_memory`, `update_memory`, `delete_memory`, `list_workspace_memories` |
+
+## Uploading files
+
+`upload_file` takes the file body from exactly one of four sources:
+
+| Source | Where it works | Use for |
+|--------|----------------|---------|
+| `path` | Local stdio server only (Claude Code, Claude Desktop launching `dist/index.js`) | Anything on your disk, up to the 50 MB server limit — the bytes go straight from the MCP process to ProjectHub, never through the model |
+| `url` | Everywhere, including the hosted connector | Files reachable over https. Private/loopback addresses are refused, redirects are re-checked, 30 s timeout |
+| `content` | Everywhere | Small text the assistant generates (reports, CSV, Markdown) |
+| `content_base64` | Everywhere | Small binary the assistant generates |
+
+Inline `content` / `content_base64` travel inside the tool call, so they are practically limited to tens of KB. The hosted connector cannot read your disk; for local files there, use the ProjectHub UI or a `url`.
+
+`filename` is required with inline content and defaults to the source's name for `path`/`url`. `task_uuid` attaches the file to a task in the same call. `PROJECTHUB_MAX_UPLOAD_BYTES` overrides the 50 MB client-side cap (the server enforces its own).
 
 ## Prerequisites
 

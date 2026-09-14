@@ -664,9 +664,9 @@ Tasks can reference project files (Pro plan, `files_enabled`). Task objects carr
 |-----------|----------|-------------|
 | `list_files` | `GET /projects/{uuid}/files` | List files (`folder`, `task_uuid` filters) |
 | `get_file` | `GET /projects/{uuid}/files/{uuid}` | File metadata incl. attached tasks |
-| `upload_file` | `POST /projects/{uuid}/files` (multipart) | Upload `content` (text) or `content_base64`; optional `folder`, `name`, `task_uuid` (attach on upload) |
+| `upload_file` | `POST /projects/{uuid}/files` (multipart) | Body from ONE of `path` (stdio only; server reads the file, bytes never pass through the model), `url` (https, SSRF-guarded), `content` (text) or `content_base64`; optional `filename` (required for inline content), `folder`, `name`, `task_uuid` (attach on upload) |
 | `delete_file` | `DELETE /projects/{uuid}/files/{uuid}` | Delete a file (uploader or Project Owner) |
 | `attach_file_to_task` | `POST /projects/{uuid}/tasks/{uuid}/attachments` | Reference an existing file from a task (idempotent) |
 | `detach_file_from_task` | `DELETE /projects/{uuid}/tasks/{uuid}/attachments/{uuid}` | Remove the reference; file survives |
 
-`create_task` / `update_task` also accept `attachment_uuids` (replace semantics on update). Keep uploads to a few MB — the content travels inside the tool call. The API rejects files over 50 MB with `413`.
+`create_task` / `update_task` also accept `attachment_uuids` (replace semantics on update). Inline `content`/`content_base64` travel inside the tool call, so keep them to tens of KB; use `path` (local) or `url` for anything larger. The API rejects files over 50 MB with `413`; the client pre-checks the same limit (`PROJECTHUB_MAX_UPLOAD_BYTES` to override).
