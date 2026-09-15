@@ -23,6 +23,10 @@ An MCP (Model Context Protocol) server that connects AI assistants like Claude D
 | **Files** | `list_files`, `get_file`, `upload_file`, `delete_file`, `attach_file_to_task`, `detach_file_from_task` |
 | **Memories** | `list_memories`, `get_memory`, `create_memory`, `update_memory`, `delete_memory`, `list_workspace_memories` |
 
+## Task keys
+
+Every task has a human-readable `key` such as `PR14` — the project's `key` prefix plus a per-project number that is assigned at creation and never reused. Task objects return `key` and `number`; project objects return `key`. Anywhere a tool takes a `task_uuid` (get/update/delete/toggle, timers, attachments, `parent_uuid`, `list_tasks` `parent`, `upload_file` `task_uuid`) you can pass the key instead, case-insensitively (`pr14`, `PR-14`). `list_tasks` `q` and `search_project` match keys too. `create_project` accepts an optional `key` (1–5 letters); otherwise it's derived from the name.
+
 ## Uploading files
 
 `upload_file` takes the file body from exactly one of four sources:

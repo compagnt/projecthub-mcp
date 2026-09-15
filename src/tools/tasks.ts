@@ -5,7 +5,7 @@ import { api, toolResult, toolError } from "../api-client.js";
 export function registerTaskTools(server: McpServer): void {
   server.registerTool("list_tasks", {
     description:
-      "List tasks in a project with optional filters. Results are paginated (default 50). Use `q` to keyword-search titles/descriptions, and `limit`/`offset` to page through large projects instead of fetching everything.",
+      "List tasks in a project with optional filters. Every task has a human `key` like PR14 (project prefix + number) — quote it back to the user and accept it as input anywhere a task_uuid is expected. Results are paginated (default 50). Use `q` to keyword-search keys/titles/descriptions, and `limit`/`offset` to page through large projects instead of fetching everything.",
     inputSchema: {
       project_uuid: z.string().uuid().describe("UUID of the project"),
       status: z
@@ -22,7 +22,7 @@ export function registerTaskTools(server: McpServer): void {
         .string()
         .optional()
         .describe(
-          '"none" for top-level only (default), "all" for all tasks, or a task UUID for subtasks',
+          '"none" for top-level only (default), "all" for all tasks, or a task UUID/key (e.g. PR14) for its subtasks',
         ),
       q: z
         .string()
@@ -66,7 +66,7 @@ export function registerTaskTools(server: McpServer): void {
     description: "Get details of a specific task",
     inputSchema: {
       project_uuid: z.string().uuid().describe("UUID of the project"),
-      task_uuid: z.string().uuid().describe("UUID of the task"),
+      task_uuid: z.string().describe("Task UUID or human key, e.g. PR14"),
     },
   }, async ({ project_uuid, task_uuid }) => {
     try {
@@ -115,9 +115,8 @@ export function registerTaskTools(server: McpServer): void {
         .describe("User ID to assign (integer, not UUID)"),
       parent_uuid: z
         .string()
-        .uuid()
         .optional()
-        .describe("UUID of parent task for creating subtasks"),
+        .describe("Parent task (UUID or key, e.g. PR14) to create a subtask under"),
       attachment_uuids: z
         .array(z.string().uuid())
         .optional()
@@ -142,10 +141,8 @@ export function registerTaskTools(server: McpServer): void {
       "Update a task. Only provided fields are changed. Set assignee_id to 0 to unassign.",
     inputSchema: {
       project_uuid: z.string().uuid().describe("UUID of the project"),
-      task_uuid: z
-        .string()
-        .uuid()
-        .describe("UUID of the task to update"),
+      task_uuid: z.string()
+        .describe("Task UUID or human key, e.g. PR14"),
       title: z.string().optional().describe("Updated title"),
       description: z
         .string()
@@ -208,7 +205,7 @@ export function registerTaskTools(server: McpServer): void {
       "Reference an existing project file from a task (idempotent). Returns the updated task with its `attachments`. Upload new content with upload_file first, or pass task_uuid to upload_file to do both in one step.",
     inputSchema: {
       project_uuid: z.string().uuid().describe("UUID of the project"),
-      task_uuid: z.string().uuid().describe("UUID of the task"),
+      task_uuid: z.string().describe("Task UUID or human key, e.g. PR14"),
       file_uuid: z.string().uuid().describe("UUID of the file (from list_files / upload_file)"),
     },
   }, async ({ project_uuid, task_uuid, file_uuid }) => {
@@ -228,7 +225,7 @@ export function registerTaskTools(server: McpServer): void {
       "Remove a file reference from a task. The file itself stays in the project's files. Returns the updated task.",
     inputSchema: {
       project_uuid: z.string().uuid().describe("UUID of the project"),
-      task_uuid: z.string().uuid().describe("UUID of the task"),
+      task_uuid: z.string().describe("Task UUID or human key, e.g. PR14"),
       file_uuid: z.string().uuid().describe("UUID of the attached file"),
     },
   }, async ({ project_uuid, task_uuid, file_uuid }) => {
@@ -246,9 +243,7 @@ export function registerTaskTools(server: McpServer): void {
     description: "Delete a task. Requires Project Owner role.",
     inputSchema: {
       project_uuid: z.string().uuid().describe("UUID of the project"),
-      task_uuid: z
-        .string()
-        .uuid()
+      task_uuid: z.string()
         .describe("UUID of the task to delete"),
     },
   }, async ({ project_uuid, task_uuid }) => {
@@ -264,9 +259,7 @@ export function registerTaskTools(server: McpServer): void {
     description: "Toggle a task between open and done status",
     inputSchema: {
       project_uuid: z.string().uuid().describe("UUID of the project"),
-      task_uuid: z
-        .string()
-        .uuid()
+      task_uuid: z.string()
         .describe("UUID of the task to toggle"),
     },
   }, async ({ project_uuid, task_uuid }) => {

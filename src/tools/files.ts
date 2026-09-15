@@ -20,11 +20,9 @@ export function registerFileTools(server: McpServer): void {
         .string()
         .optional()
         .describe('Only files in this folder (use "" for unfiled files)'),
-      task_uuid: z
-        .string()
-        .uuid()
+      task_uuid: z.string()
         .optional()
-        .describe("Only files attached to this task"),
+        .describe("Only files attached to this task (UUID or key, e.g. PR14)"),
     },
   }, async ({ project_uuid, folder, task_uuid }) => {
     try {
@@ -96,11 +94,9 @@ export function registerFileTools(server: McpServer): void {
         .string()
         .optional()
         .describe("Folder to file it under (created implicitly)"),
-      task_uuid: z
-        .string()
-        .uuid()
+      task_uuid: z.string()
         .optional()
-        .describe("Attach the uploaded file to this task"),
+        .describe("Attach the uploaded file to this task (UUID or key, e.g. PR14)"),
     },
   }, async ({ project_uuid, path, url, content, content_base64, filename, content_type, name, folder, task_uuid }) => {
     try {

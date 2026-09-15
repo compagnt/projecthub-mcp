@@ -37,10 +37,14 @@ export function registerWorkspaceTools(server: McpServer): void {
 
   server.registerTool("create_project", {
     description:
-      "Create a new project in a workspace. Requires add_project permission.",
+      "Create a new project in a workspace. Requires add_project permission. The response includes `key`, the prefix used for that project's task IDs (PR14).",
     inputSchema: {
       workspace_uuid: z.string().uuid().describe("UUID of the workspace"),
       name: z.string().describe("Project name"),
+      key: z
+        .string()
+        .optional()
+        .describe("Task ID prefix, 1–5 letters (e.g. PR → tasks PR1, PR2…). Derived from the name if omitted. Unique per workspace; cannot change once tasks exist."),
       description: z.string().optional().describe("Project description"),
       color: z
         .string()

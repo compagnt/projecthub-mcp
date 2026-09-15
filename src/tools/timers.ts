@@ -8,7 +8,7 @@ export function registerTimerTools(server: McpServer): void {
       "Start a time tracking timer on a task. Automatically stops any other running timer.",
     inputSchema: {
       project_uuid: z.string().uuid().describe("UUID of the project"),
-      task_uuid: z.string().uuid().describe("UUID of the task"),
+      task_uuid: z.string().describe("Task UUID or human key, e.g. PR14"),
     },
   }, async ({ project_uuid, task_uuid }) => {
     try {
@@ -25,7 +25,7 @@ export function registerTimerTools(server: McpServer): void {
     description: "Stop the running time tracking timer on a task",
     inputSchema: {
       project_uuid: z.string().uuid().describe("UUID of the project"),
-      task_uuid: z.string().uuid().describe("UUID of the task"),
+      task_uuid: z.string().describe("Task UUID or human key, e.g. PR14"),
     },
   }, async ({ project_uuid, task_uuid }) => {
     try {

@@ -670,3 +670,9 @@ Tasks can reference project files (Pro plan, `files_enabled`). Task objects carr
 | `detach_file_from_task` | `DELETE /projects/{uuid}/tasks/{uuid}/attachments/{uuid}` | Remove the reference; file survives |
 
 `create_task` / `update_task` also accept `attachment_uuids` (replace semantics on update). Inline `content`/`content_base64` travel inside the tool call, so keep them to tens of KB; use `path` (local) or `url` for anything larger. The API rejects files over 50 MB with `413`; the client pre-checks the same limit (`PROJECTHUB_MAX_UPLOAD_BYTES` to override).
+
+---
+
+## Task keys
+
+Every task carries a human-readable `key` (`PR14`: the project's `key` prefix plus a per-project number assigned at creation and never reused) and `number`. Project objects carry `key`. Any endpoint or tool that takes a task identifier (`/tasks/{task_uuid}` for get/patch/delete/toggle/timers/attachments, `parent_uuid`, `list_tasks` `parent`, `list_files` `task`, upload `task_uuid`) accepts the key in place of the UUID, case-insensitively and with an optional hyphen (`pr14`, `PR-14`). `list_tasks` `q` and `search_project` match keys. `POST /workspaces/{uuid}/projects` accepts an optional `key` (1–5 letters, unique per workspace; `400` otherwise) and derives one from the name when omitted.
