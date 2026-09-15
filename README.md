@@ -4,14 +4,15 @@ An MCP (Model Context Protocol) server that connects AI assistants like Claude D
 
 ## Features
 
-52 tools covering the full ProjectHub API:
+56 tools covering the full ProjectHub API:
 
 | Category | Tools |
 |----------|-------|
 | **User** | `get_user_info` |
 | **Workspaces** | `list_workspaces`, `list_projects`, `create_project` |
 | **Projects** | `get_project`, `list_project_members`, `search_project`, `get_activity` |
-| **Tasks** | `list_tasks`, `get_task`, `create_task`, `update_task`, `delete_task`, `toggle_task` (create/update accept `attachment_uuids`) |
+| **Tasks** | `list_tasks`, `get_task`, `create_task`, `update_task`, `delete_task`, `toggle_task` (create/update accept `attachment_uuids`; update accepts `comment`) |
+| **Task comments** | `list_task_comments`, `add_task_comment`, `update_task_comment`, `delete_task_comment` |
 | **Time Tracking** | `start_timer`, `stop_timer` |
 | **Notes** | `list_notes`, `get_note`, `create_note`, `update_note`, `delete_note` |
 | **Tags** | `list_tags`, `create_tag`, `update_tag`, `delete_tag` |

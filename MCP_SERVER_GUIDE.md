@@ -676,3 +676,18 @@ Tasks can reference project files (Pro plan, `files_enabled`). Task objects carr
 ## Task keys
 
 Every task carries a human-readable `key` (`PR14`: the project's `key` prefix plus a per-project number assigned at creation and never reused) and `number`. Project objects carry `key`. Any endpoint or tool that takes a task identifier (`/tasks/{task_uuid}` for get/patch/delete/toggle/timers/attachments, `parent_uuid`, `list_tasks` `parent`, `list_files` `task`, upload `task_uuid`) accepts the key in place of the UUID, case-insensitively and with an optional hyphen (`pr14`, `PR-14`). `list_tasks` `q` and `search_project` match keys. `POST /workspaces/{uuid}/projects` accepts an optional `key` (1–5 letters, unique per workspace; `400` otherwise) and derives one from the name when omitted.
+
+---
+
+## Task comments
+
+Tasks have a comment thread. Bodies are plain text; `@First Last` (a project member's display name, see `list_project_members`) mentions that member and sends them an in-app notification linking to the task. Task objects carry `comment_count`.
+
+| Tool Name | API Call | Description |
+|-----------|----------|-------------|
+| `list_task_comments` | `GET /projects/{uuid}/tasks/{uuid}/comments` | Thread, oldest first, with `mentions` and `reactions` counts |
+| `add_task_comment` | `POST /projects/{uuid}/tasks/{uuid}/comments` | Post as the caller (`{body}`) |
+| `update_task_comment` | `PATCH /projects/{uuid}/tasks/{uuid}/comments/{uuid}` | Edit; author or Project Owner; only newly added mentions notified |
+| `delete_task_comment` | `DELETE /projects/{uuid}/tasks/{uuid}/comments/{uuid}` | Delete; author or Project Owner |
+
+`update_task` also accepts `comment` to post a comment in the same call (e.g. mark done and say why). The task identifier may be the UUID or the key (`PR14`).

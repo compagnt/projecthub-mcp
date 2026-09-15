@@ -181,6 +181,12 @@ export function registerTaskTools(server: McpServer): void {
         .describe(
           "Full replacement list of file UUIDs referenced from this task (omit to leave attachments untouched; [] clears them). For incremental changes use attach_file_to_task / detach_file_from_task.",
         ),
+      comment: z
+        .string()
+        .optional()
+        .describe(
+          "Also post a comment on the task's thread as the requesting user. '@First Last' mentions a project member and notifies them with a link to the task.",
+        ),
     },
   }, async ({ project_uuid, task_uuid, ...body }) => {
     try {
@@ -195,6 +201,77 @@ export function registerTaskTools(server: McpServer): void {
         filteredBody,
       );
       return toolResult(task);
+    } catch (error) {
+      return toolError(error);
+    }
+  });
+
+  server.registerTool("list_task_comments", {
+    description:
+      "Read a task's comment thread (oldest first): who said what and when, with mentions and emoji reaction counts. Use it before replying so you have the context.",
+    inputSchema: {
+      project_uuid: z.string().uuid().describe("UUID of the project"),
+      task_uuid: z.string().describe("Task UUID or human key, e.g. PR14"),
+    },
+  }, async ({ project_uuid, task_uuid }) => {
+    try {
+      const comments = await api.get(`/projects/${project_uuid}/tasks/${task_uuid}/comments`);
+      return toolResult(comments);
+    } catch (error) {
+      return toolError(error);
+    }
+  });
+
+  server.registerTool("add_task_comment", {
+    description:
+      "Post a comment on a task as the requesting user. Plain text. '@First Last' (a project member's display name — see list_project_members) mentions them and sends an in-app notification linking to the task. Returns the created comment.",
+    inputSchema: {
+      project_uuid: z.string().uuid().describe("UUID of the project"),
+      task_uuid: z.string().describe("Task UUID or human key, e.g. PR14"),
+      body: z.string().min(1).describe("Comment text"),
+    },
+  }, async ({ project_uuid, task_uuid, body }) => {
+    try {
+      const comment = await api.post(`/projects/${project_uuid}/tasks/${task_uuid}/comments`, { body });
+      return toolResult(comment);
+    } catch (error) {
+      return toolError(error);
+    }
+  });
+
+  server.registerTool("update_task_comment", {
+    description:
+      "Edit a comment's text. Allowed for the comment's author or a Project Owner. Only newly added mentions are notified.",
+    inputSchema: {
+      project_uuid: z.string().uuid().describe("UUID of the project"),
+      task_uuid: z.string().describe("Task UUID or human key, e.g. PR14"),
+      comment_uuid: z.string().uuid().describe("UUID of the comment"),
+      body: z.string().min(1).describe("New comment text"),
+    },
+  }, async ({ project_uuid, task_uuid, comment_uuid, body }) => {
+    try {
+      const comment = await api.patch(
+        `/projects/${project_uuid}/tasks/${task_uuid}/comments/${comment_uuid}`,
+        { body },
+      );
+      return toolResult(comment);
+    } catch (error) {
+      return toolError(error);
+    }
+  });
+
+  server.registerTool("delete_task_comment", {
+    description:
+      "Delete a comment from a task. Allowed for the comment's author or a Project Owner.",
+    inputSchema: {
+      project_uuid: z.string().uuid().describe("UUID of the project"),
+      task_uuid: z.string().describe("Task UUID or human key, e.g. PR14"),
+      comment_uuid: z.string().uuid().describe("UUID of the comment"),
+    },
+  }, async ({ project_uuid, task_uuid, comment_uuid }) => {
+    try {
+      await api.delete(`/projects/${project_uuid}/tasks/${task_uuid}/comments/${comment_uuid}`);
+      return toolResult({ deleted: true, comment_uuid });
     } catch (error) {
       return toolError(error);
     }
